@@ -8,7 +8,12 @@ describe('App', () => {
     render(<App />);
     expect(screen.getAllByTestId('node')).toHaveLength(12);
     expect(screen.getByText(/convergence/i)).toBeTruthy();
-    expect(screen.getByRole('button', { name: /play/i })).toBeTruthy();
+  });
+
+  it('starts playing automatically', () => {
+    render(<App />);
+    expect(screen.getByRole('button', { name: /pause/i })).toBeTruthy();
+    expect((screen.getByRole('button', { name: /step/i }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('clicking a node opens the inspector; close hides it', () => {
@@ -21,6 +26,7 @@ describe('App', () => {
 
   it('step advances the tick counter', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /pause/i }));
     const before = screen.getByTestId('tick')?.textContent;
     fireEvent.click(screen.getByRole('button', { name: /step/i }));
     expect(screen.getByTestId('tick').textContent).not.toBe(before);
@@ -28,6 +34,7 @@ describe('App', () => {
 
   it('add node grows the ring', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /pause/i }));
     fireEvent.click(screen.getByRole('button', { name: /add node/i }));
     fireEvent.click(screen.getByRole('button', { name: /step/i }));
     expect(screen.getAllByTestId('node')).toHaveLength(13);

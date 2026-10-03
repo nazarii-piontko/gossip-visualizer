@@ -30,7 +30,11 @@ export default function App() {
     }
   }, [state.report.tick, state.running, state.tickMs]);
 
-  useEffect(() => () => controller.dispose(), [controller]);
+  // Auto-play on mount; pause (not dispose) on cleanup so StrictMode's remount restarts the timer
+  useEffect(() => {
+    controller.play();
+    return () => controller.pause();
+  }, [controller]);
 
   const detail = selected !== null ? controller.getNodeDetail(selected) : null;
   const ids = Object.keys(state.report.snapshot.groundTruth).map(Number);
