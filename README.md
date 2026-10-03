@@ -2,6 +2,8 @@
 
 A browser-based teaching and exploration tool that simulates [SWIM](https://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf)-style gossip membership (with the [Lifeguard](https://arxiv.org/abs/1707.00788) local-health extension) across a cluster of virtual nodes and animates the protocol traffic in real time.
 
+The purpose of this simulator is to play around and experiment with gossip protocols: watch how information spreads through the cluster, how fast (and whether) membership views converge, and how failures, packet loss, partitions and churn affect detection and dissemination. Tweak the parameters, break things, and see what happens.
+
 **Live demo:** https://nazarii-piontko.github.io/gossip-visualizer/
 
 **Stack:** Vite 8 + React 19 + TypeScript 7 (strict), no runtime dependencies beyond React. Pure-TS simulation engine + React/SVG visualization layer. Vitest + Testing Library, 140+ tests.
