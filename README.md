@@ -163,6 +163,36 @@ sim.updateSwimParams({ protocolPeriod: 8 });
 sim.getNodeDetail(id);              // inspector data
 ```
 
+## Open Questions & Additional Work
+
+Known gaps between this simulator and production SWIM implementations (HashiCorp memberlist, Uber Ringpop). None of these are bugs in what is implemented. They're things that aren't modeled yet, or behavior that's worth questioning.
+
+### Protocol
+
+- **No anti-entropy (full-state sync).** Membership moves only as piggybacked updates (≤ 6 per message), and each retires after 8 sends, counted at send time even if the message is dropped. Once gossip dies out, two nodes whose views differ never find out. Example: a node isolated for a while uses up its own suspicion updates on dropped messages. After the heal, the suspected peer only learns of it through direct contact, so the suspicion often expires into a temporary false dead (about half of seeds in the isolation integration scenario). Options:
+  - *memberlist push-pull:* every K ticks, swap the full table with one random alive peer, importing remote `dead` as `suspect`.
+  - *Ringpop checksum sync:* every message carries a checksum of the sender's table; on mismatch with no pending gossip, the reply carries the full table, plus a reverse sync.
+- **Join transfers no state.** The Simulator writes seeds straight into the new node's table. The new node learns the rest of the cluster only gradually, from gossip and from being probed. memberlist does a push-pull with the seed node on join.
+- **No Lifeguard dynamic suspicion.** Only Lifeguard's local health multiplier (LHM) is implemented. In Lifeguard, a suspicion starts at a long timeout (memberlist: 6× the minimum) and shortens only as other nodes independently confirm it. Without that, an unconfirmed suspicion from a node that was recently unhealthy expires as fast as a confirmed one.
+- **No nack.** A Lifeguard relay sends a nack when it can't reach the target in time. That lets the prober tell "target is down" apart from "my own network is bad", and raise its LHM only in the second case. Here every failed probe raises LHM.
+- **Retransmit limit doesn't scale with cluster size.** It's a flat 8 sends. memberlist uses `RetransmitMult · ⌈log10(N+1)⌉`; Ringpop uses `15 · ⌈log10(N+1)⌉`. The suspicion timeout scales with N; the dissemination budget doesn't.
+- **Resurrection after pruning?** Dead entries are dropped after 50 ticks. A pruned node has no entry, so a late `alive` about it would be accepted again as new. That should be rare, since gossip about it has usually retired by then, but it isn't tested. memberlist keeps dead entries and keeps gossiping to recently dead nodes (`GossipToTheDeadTime`); Ringpop keeps faulty members for 24h.
+- **Suspicion timeout sizes N from the table, dead entries included.** memberlist uses its estimate of live nodes. That makes timeouts slightly longer right after a large failure.
+- **New peers wait for the next round-robin pass.** SWIM inserts newly learned members at a random position in the current probe list.
+
+### Membership lifecycle
+
+- **No automatic reconnect.** An orphaned node (one whose table emptied after long isolation) recovers only through the manual **Rejoin**. Serf retries failed members on a timer (`ReconnectInterval`); Ringpop's partition healing re-contacts faulty and unseen hosts from a discovery list. Each needs failed members to be remembered longer than 50 ticks.
+- **No crash-recovery.** **Kill** is permanent. A real crashed process restarts with an empty table and incarnation 0, while the cluster holds `dead@k` for it, and must refute its way back in. That's an interesting case the simulator can't show.
+- **Graceful leave is one best-effort send** to peers seen as alive. A dropped `leave` falls back to normal failure detection.
+
+### Network model
+
+- **Fixed 1-tick latency.** No jitter, reordering, or slow links. Acks carry no sequence number, which is only safe because latency is fixed; variable latency would need probe ids.
+- **No group partitions.** Loss is per node (in/out) or global. There's no way to cut the cluster into two groups that each stay connected internally (true split-brain), or to block a single link A↔B.
+- **Independent drops only.** No bursty or correlated loss.
+- **No bandwidth model.** Message counts are reported but not size. Piggyback and full-table costs can't be compared.
+
 ## License
 
 [MIT](LICENSE)
