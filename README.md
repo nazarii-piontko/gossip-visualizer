@@ -163,30 +163,6 @@ sim.updateSwimParams({ protocolPeriod: 8 });
 sim.getNodeDetail(id);              // inspector data
 ```
 
-## Testing
-
-```bash
-npm test             # 17 test files, 140+ tests
-```
-
-**Test coverage:**
-
-- Determinism: same seed + same actions → identical tick streams (500 ticks)
-- Convergence: N=20, zero failures → 100% convergence, no false positives
-- Detection: killed node marked dead cluster-wide within a bounded time
-- Refutation & isolation: isolated node is declared dead, then revives via refutation on heal
-- Lifeguard: LHM up/down/clamp, every timeout scales by 1 + LHM, isolated node issues no dead verdicts
-- Leave & rejoin: graceful leave skips suspicion; manual rejoin recovers after mutual pruning
-- Piggyback: least-sent-first priority, retransmit limit, suspicion echo after buffer exhaustion
-- Merge rules: incarnation/state precedence
-- UI components: ring, packets, inspector, stats, controls, legend, layout, controller
-
-## Development
-
-- **Strict TypeScript:** `strict: true` in `tsconfig.app.json` / `tsconfig.node.json`
-- **oxlint:** configured via `.oxlintrc.json` (react, typescript, oxc plugins)
-- **SVG rendering:** no canvas, no chart libraries; packets animate with SMIL, nodes with CSS transitions
-
 ## License
 
-Educational / reference implementation.
+[MIT](LICENSE)
