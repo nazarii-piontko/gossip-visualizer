@@ -6,6 +6,8 @@ The purpose of this simulator is to play around and experiment with gossip proto
 
 **Live demo:** https://nazarii-piontko.github.io/gossip-visualizer/
 
+[![Demo: node 3 is killed, suspected, then declared dead as the cluster converges](docs/demo.gif)](https://nazarii-piontko.github.io/gossip-visualizer/)
+
 **Stack:** Vite 8 + React 19 + TypeScript 7 (strict), no runtime dependencies beyond React. Pure-TS simulation engine + React/SVG visualization layer. Vitest + Testing Library, 140+ tests.
 
 ## Quick Start
@@ -18,6 +20,7 @@ npm run test:watch   # Tests in watch mode
 npm run lint         # oxlint
 npm run build        # Type-check + production build
 npm run preview      # Serve the production build
+npm run demo:record  # Re-record docs/demo.gif (needs ffmpeg; optional URL arg)
 ```
 
 ## How SWIM Works
